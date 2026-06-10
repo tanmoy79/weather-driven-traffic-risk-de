@@ -2,15 +2,9 @@
 
 This project is part of the course **"Research Software Engineering (RSE)"**, taught by Prof. Dr. Anna-Lena Lamprecht at the University of Potsdam.
 
-A reproducible data pipeline and empirical analysis exploring the structural, environmental, spatial, and temporal relationships between adverse weather conditions and traffic accident dynamics across Germany. By leveraging historical meteorological data alongside spatialized accident coordinates, this repository automates data ingestion, cleaning, multi-criteria risk modeling, and regression analyses to quantify weather-induced road safety threats.
+A reproducible Snakemake workflow that combines German traffic accident records with hourly weather observations to analyse how precipitation, frost, heat and solar radiation relate to traffic accident frequency and severity in Germany (2016–2024).
 
----
-
-## Project Overview & Context
-
-Traffic safety is highly sensitive to environmental dynamics. While infrastructure engineering and advanced driver assistance systems (ADAS) have steadily mitigated baseline risks, extreme or variable weather events present non-linear hazards to motorists. This project builds a reliable, reproducible research pipeline to systematically evaluate how weather phenomena (ranging from sub-zero frost to high-intensity summer solar radiation) influence risk across different road typologies and German federal states (*Bundesländer*).
-
-The primary analytical dataset for traffic incidents is the official [German Accident Atlas (Unfallatlas)](https://unfallatlas.statistikportal.de/), maintained by the Federal Statistical Office and the Statistical Offices of the Länder. This is combined with high-resolution historical meteorological records to build a comprehensive data pipeline orchestrating preprocessing, spatial joining, risk-ratio estimation, and long-term trend evaluation.
+The accident data comes from the official [German Accident Atlas (Unfallatlas)](https://unfallatlas.statistikportal.de/), maintained by the Federal Statistical Office and the Statistical Offices of the Länder. The weather data comes from the [DWD Climate Data Center (CDC)](https://opendata.dwd.de/climate_environment/CDC/) open data server.
 
 ---
 
@@ -21,8 +15,8 @@ The primary analytical dataset for traffic incidents is the official [German Acc
 * **Objective:** Quantify how specific precipitation thresholds and frost change the accident rate, the share of severe accidents, and the kind of accidents that happen. (Originally we wanted to compare Autobahns against rural roads, but the published Unfallatlas data contains no road-class attribute, so the question was refined to severity and accident types instead.)
 
 ### 2. The Threat of the Summer Sun: Sun Glare vs. Heatwaves (RQ2)
-* **Question:** To what extent do summer weather factors—specifically high global solar radiation (sun glare) and extreme heatwaves—predict commuter-hour traffic accident rates compared to rainy conditions?
-* **Objective:** Move beyond traditional winter-centric risk models to establish the statistical significance of heat-induced cognitive fatigue and low-angle sun glare during peak morning and evening transit windows.
+* **Question:** To what extent do summer weather factors—specifically high global solar radiation (sun glare) and extreme heat—predict commuter-hour traffic accident rates compared to rainy conditions?
+* **Objective:** Move beyond traditional winter-centric risk models and test whether heat and low-angle sun glare during peak morning and evening transit windows measurably raise accident rates.
 
 ### 3. Spatial Sensitivity & Regional Driving Behavior (RQ3)
 * **Question:** Which German states exhibit the strongest sensitivity of traffic accident patterns to changing weather conditions, and how does this sensitivity differ between city states and territorial states?
@@ -32,15 +26,97 @@ The primary analytical dataset for traffic incidents is the official [German Acc
 * **Question:** How have traffic safety patterns evolved under varying weather conditions in Germany between 2016 and 2024, and has the relative risk of weather-related accidents declined over that period?
 * **Objective:** Track the yearly weather risk ratios and severity shares from 2016 to 2024 to see whether adverse weather has become less dangerous over time (for example through modern vehicle safety technology such as ESP and autonomous braking).
 
+## Key Results
+
+The full generated report with figures is in [results/report.md](results/report.md).
+
+* **RQ1:** Accidents on wet roads happened **2.8×** as often per rainy hour as dry-road accidents per dry hour. On icy roads, **65 %** of accidents were loss-of-control accidents (vs. 16 % on dry roads), but the share of *severe* accidents was lower than on dry roads — drivers apparently slow down.
+* **RQ2:** Neither strong sunshine (rate ratio 1.00) nor heat (1.01) raised summer commuter-hour accident rates measurably; summer rain remains the more relevant factor.
+* **RQ3:** The northern coastal states (Schleswig-Holstein, Mecklenburg-Vorpommern) showed the highest weather sensitivity, Bayern the lowest; city states and territorial states differ only slightly.
+* **RQ4:** Rain remained roughly equally dangerous across 2016–2024 (no significant trend), but the share of severe accidents on wet/icy roads fell steadily from 19 % to 15 % — consistent with modern vehicle safety technology softening the consequences.
+
 ---
 
+## What the Workflow Does
+
+The workflow follows the activity diagram in [docs/requirements.md](docs/requirements.md):
+
+1. **prepare_accidents** – merges the yearly Unfallatlas files (changing column formats) into one clean table.
+2. **download_weather** – selects DWD stations (2 per federal state) and downloads hourly temperature, precipitation and solar radiation (CC-BY 4.0).
+3. **prepare_weather** – turns the archives into a gap-free hourly series in local time.
+4. **join_data** – assigns every accident to its nearest weather station (KD-tree).
+5. **build_features** – aggregates weather hours and accident counts into time cells (station, year, month, weekend, hour) with configurable thresholds. This is necessary because the Unfallatlas does not publish exact accident dates.
+6. **descriptive_stats** – summary statistics and overview figures.
+7. **analyze_rq / plot_rq** – statistics and one figure per research question (standardized rate ratios, chi-square tests, correlations, trends).
+8. **report** – assembles everything into `results/report.md`.
+
+## Installation
+
+Requires Python ≥ 3.10. Set up a virtual environment and install the dependencies:
+
+```bash
+python -m venv venv
+source venv/bin/activate        # on Windows: venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+## Running the Workflow
+
+The raw accident data (2016–2024) is included in `data/raw_accidents/`. The weather data (~200 MB) is downloaded automatically from the DWD open data server on the first run, so an internet connection is needed once.
+
+```bash
+snakemake --cores 4 -s workflow/Snakefile
+```
+
+The whole run takes roughly 15–20 minutes on a normal laptop. All intermediate files go to `data/processed/`, all results (tables, figures, report) to `results/`.
+
+### Configuration
+
+All parameters live in [config/config.yaml](config/config.yaml): the year range, stations per state, the maximum accident-to-station distance and the thresholds for rain, heavy rain, frost, heat and strong sun. Each step is also a standalone command-line tool (see `python src/<tool>.py --help`) and can be run independently.
+
+### Reproducing the Example Results
+
+The committed files in `results/` were produced with the default configuration. To reproduce them, delete the `results/` directory and run the workflow again — the analysis is deterministic, so the tables and figures will be identical (the weather download is cached in `data/raw_weather/`).
+
+## Tests
+
+The core functionality (format handling, cleaning, joining, classification, statistics) is covered by unit tests:
+
+```bash
+pytest tests
+```
+
+## Repository Structure
+
+```
+config/          workflow configuration
+data/            raw accident data (committed) and downloaded/derived data
+docs/            requirements and activity diagrams
+results/         generated tables, figures and the final report
+src/             one command-line tool per workflow step
+tests/           pytest unit tests
+workflow/        Snakefile
+```
+
+## Data Sources and Licenses
+
+* **Unfallatlas** – © Statistische Ämter des Bundes und der Länder, [Datenlizenz Deutschland – Namensnennung – 2.0](https://www.govdata.de/dl-de/by-2-0).
+* **DWD Climate Data Center** – Deutscher Wetterdienst, [CC-BY 4.0](https://opendata.dwd.de/climate_environment/CDC/Terms_of_use.pdf); hourly station observations of air temperature, precipitation and solar radiation.
+
+## Citation
+
+If you use this software, please cite it using the metadata in [CITATION.cff](CITATION.cff).
+
+---
 
 ## Community & Contributing
 
-We welcome community contributions, bug reports, and structural analytical improvements! 
+We welcome community contributions, bug reports, and structural analytical improvements!
 
 * **Contribution Guidelines:** [Contribution Guide (CONTRIBUTING.md)](CONTRIBUTING.md).
 
-* **Code of Conduct:** In order to ensure a welcoming, inclusive, and collaborative environment for everyone, all project participants and contributors are expected to adhere to our standard [Code of Conduct](CONTRIBUTING.md#code-of-conduct).
+* **Code of Conduct:** In order to ensure a welcoming, inclusive, and collaborative environment for everyone, all project participants and contributors are expected to adhere to our [Code of Conduct](CONDUCT.md).
 
----
+## License
+
+This project is licensed under the [MIT License](LICENSE).

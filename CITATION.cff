@@ -1,0 +1,29 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "Weather-Driven Traffic Risk in Germany"
+type: software
+authors:
+  - family-names: "Tanmoy"
+    given-names: "Nazmul Hasan"
+    affiliation: "University of Potsdam"
+  - family-names: "Ahmed"
+    given-names: "Farhana"
+    affiliation: "University of Potsdam"
+  - family-names: "Gomes"
+    given-names: "Emmanuel"
+    affiliation: "University of Potsdam"
+abstract: >-
+  A Snakemake workflow that combines German traffic accident records
+  (Unfallatlas) with hourly DWD weather observations to analyse how
+  precipitation, frost, heat and solar radiation relate to traffic
+  accident frequency and severity in Germany (2016-2024).
+keywords:
+  - traffic accidents
+  - weather
+  - Germany
+  - Snakemake
+  - reproducible research
+license: MIT
+version: "1.0"
+date-released: "2026-06-10"
+repository-code: "https://gitup.uni-potsdam.de/tanmoy/weather-driven-traffic-risk-de"
