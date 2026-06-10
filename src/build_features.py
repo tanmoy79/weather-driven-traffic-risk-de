@@ -48,7 +48,10 @@ def classify_weather_hours(weather, args):
 
 def aggregate_weather(weather):
     """Aggregate the classified hours into time cells."""
-    timestamp = pd.to_datetime(weather["timestamp"])
+    # the stored local timestamps mix +01:00 and +02:00 offsets (CET/CEST),
+    # so parse them as UTC first and convert back to local time
+    timestamp = pd.to_datetime(weather["timestamp"], utc=True)
+    timestamp = timestamp.dt.tz_convert("Europe/Berlin")
     weather["year"] = timestamp.dt.year
     weather["month"] = timestamp.dt.month
     weather["hour"] = timestamp.dt.hour
