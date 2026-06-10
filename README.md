@@ -16,21 +16,21 @@ The primary analytical dataset for traffic incidents is the official [German Acc
 
 ## Research Questions
 
-### 1. Infrastructure Vulnerability: Autobahn vs. Rural Roads (RQ1)
-* **Question:** How do varying intensities of precipitation (light drizzle vs. heavy rainfall) and freezing temperatures differentially impact traffic accident frequency and severity on German Autobahns compared to rural roads (*Landstraßen*)?
-* **Objective:** Quantify the interaction effect between roadway typology and specific precipitation thresholds, isolating how structural properties (e.g., drainage, lane width, speed limits) attenuate or exacerbate weather risks.
+### 1. Weather and Accident Severity (RQ1)
+* **Question:** How do varying intensities of precipitation (light drizzle vs. heavy rainfall) and freezing temperatures impact traffic accident frequency and severity, and do they shift the mix of accident types (e.g., loss-of-control accidents vs. collisions)?
+* **Objective:** Quantify how specific precipitation thresholds and frost change the accident rate, the share of severe accidents, and the kind of accidents that happen. (Originally we wanted to compare Autobahns against rural roads, but the published Unfallatlas data contains no road-class attribute, so the question was refined to severity and accident types instead.)
 
 ### 2. The Threat of the Summer Sun: Sun Glare vs. Heatwaves (RQ2)
 * **Question:** To what extent do summer weather factors—specifically high global solar radiation (sun glare) and extreme heatwaves—predict commuter-hour traffic accident rates compared to rainy conditions?
 * **Objective:** Move beyond traditional winter-centric risk models to establish the statistical significance of heat-induced cognitive fatigue and low-angle sun glare during peak morning and evening transit windows.
 
 ### 3. Spatial Sensitivity & Regional Driving Behavior (RQ3)
-* **Question:** Which German states exhibit the strongest sensitivity of traffic accident patterns to changing weather conditions, and how does this sensitivity differ between highly urbanized and less densely populated federal states?
-* **Objective:** Construct a state-level sensitivity index to evaluate regional resilience, correlating local risk variances with regional geographic profiles (e.g., urban micro-climates vs. topography-driven weather spikes).
+* **Question:** Which German states exhibit the strongest sensitivity of traffic accident patterns to changing weather conditions, and how does this sensitivity differ between city states and territorial states?
+* **Objective:** Construct a state-level sensitivity index (rain and frost risk ratios per state) to evaluate regional differences between highly urbanized city states (Berlin, Hamburg, Bremen) and the larger territorial states.
 
 ### 4. The Evolution of Weather Risk Over Time (RQ4)
-* **Question:** How have traffic safety patterns evolved under varying weather conditions in Germany over the past decade, and has the relative risk of weather-related accidents declined due to modern vehicle safety technology?
-* **Objective:** Execute a time-series decomposition of accident-to-weather coefficients from the past decade to test whether active safety systems (such as ESP, autonomous braking, and lane-keep assist) have successfully decoupled adverse weather from high casualty counts.
+* **Question:** How have traffic safety patterns evolved under varying weather conditions in Germany between 2016 and 2024, and has the relative risk of weather-related accidents declined over that period?
+* **Objective:** Track the yearly weather risk ratios and severity shares from 2016 to 2024 to see whether adverse weather has become less dangerous over time (for example through modern vehicle safety technology such as ESP and autonomous braking).
 
 ---
 
