@@ -31,30 +31,39 @@ def get_values(results, section, metric):
 def plot_rq1(results):
     fig, axes = plt.subplots(2, 2, figsize=(11, 8))
 
+    ratios = pd.concat([
+        get_values(results, "condition_ratios", "rate_ratio"),
+        get_values(results, "standardized_ratios", "rate_ratio"),
+    ])
+    ratios = ratios.reindex(["wet_road", "icy_road", "light_rain", "heavy_rain"])
+    ratios.plot(kind="bar", ax=axes[0, 0], color="steelblue")
+    axes[0, 0].axhline(1.0, color="black", linewidth=0.8)
+    axes[0, 0].set_title("Standardized rate ratios vs. dry (1 = no effect)\n"
+                         "wet/icy: per weather hour; light/heavy: cell level (diluted)")
+    axes[0, 0].set_ylabel("observed / expected accidents")
+
     order = ["none", "low", "medium", "high"]
     rain = get_values(results, "rate_by_rain_share", "rate_per_1000h").reindex(order)
-    rain.plot(kind="bar", ax=axes[0, 0], color="steelblue")
-    axes[0, 0].set_title("Accident rate by share of rainy hours")
-    axes[0, 0].set_ylabel("accidents per 1000 station-hours")
-
-    intensity = get_values(results, "rate_by_rain_intensity", "rate_per_1000h")
-    intensity = intensity.reindex(["dry", "light_rain", "heavy_rain"])
-    intensity.plot(kind="bar", ax=axes[0, 1], color="darkcyan")
-    axes[0, 1].set_title("Accident rate by rain intensity")
-
-    frost = get_values(results, "rate_by_frost_share_winter", "rate_per_1000h")
-    frost.reindex(order).plot(kind="bar", ax=axes[1, 0], color="slategray")
-    axes[1, 0].set_title("Accident rate by share of frost hours (winter)")
-    axes[1, 0].set_ylabel("accidents per 1000 station-hours")
+    rain.plot(kind="bar", ax=axes[0, 1], color="darkcyan")
+    axes[0, 1].set_title("Raw accident rate by share of rainy hours\n"
+                         "(not adjusted for time of day or season)")
+    axes[0, 1].set_ylabel("accidents per 1000 station-hours")
 
     severe = get_values(results, "severity_by_road_condition", "share_severe")
     severe = severe.reindex(["dry", "wet", "icy"])
-    severe.plot(kind="bar", ax=axes[1, 1], color="indianred")
-    axes[1, 1].set_title("Share of severe accidents by road condition")
+    severe.plot(kind="bar", ax=axes[1, 0], color="indianred")
+    axes[1, 0].set_title("Share of severe accidents by road condition")
+
+    loss = get_values(results, "type_by_road_condition", "share_loss_of_control")
+    loss = loss.reindex(["dry", "wet", "icy"])
+    loss.plot(kind="bar", ax=axes[1, 1], color="slategray")
+    axes[1, 1].set_title("Share of loss-of-control accidents by road condition")
 
     for ax in axes.flat:
         ax.tick_params(axis="x", rotation=0)
-    fig.suptitle("RQ1: Precipitation, frost and accident risk", y=1.0)
+        ax.set_xlabel("")
+    fig.suptitle("RQ1: Precipitation, frost and accident risk")
+    fig.tight_layout()
     return fig
 
 

@@ -1,0 +1,15 @@
+section,group,metric,value
+commuter_rate_by_condition,neutral,rate_per_1000h,1446.1908138343967
+commuter_rate_by_condition,neutral,n_hours,50772.0
+commuter_rate_by_condition,strong_sun,rate_per_1000h,2406.319385140905
+commuter_rate_by_condition,strong_sun,n_hours,5855.0
+commuter_rate_by_condition,strong_sun,rate_ratio_vs_neutral,0.9951774706487887
+commuter_rate_by_condition,hot,rate_per_1000h,2255.5225848994396
+commuter_rate_by_condition,hot,n_hours,3033.0
+commuter_rate_by_condition,hot,rate_ratio_vs_neutral,1.0142484749907659
+commuter_rate_by_condition,rainy,rate_per_1000h,545.4545454545454
+commuter_rate_by_condition,rainy,n_hours,22.0
+commuter_rate_by_condition,rainy,rate_ratio_vs_neutral,0.6737967914438503
+solar_rate_correlation,station_months,pearson_r,0.08839594774004128
+solar_rate_correlation,station_months,p_value,0.0462281980930918
+solar_rate_correlation,station_months,n,509.0
