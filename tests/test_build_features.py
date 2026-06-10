@@ -39,6 +39,24 @@ def test_classify_drops_hours_without_measurements():
     assert len(result) == 1
 
 
+def test_aggregate_weather_handles_mixed_utc_offsets():
+    # the hourly CSV mixes +01:00 (winter) and +02:00 (summer) offsets
+    weather = pd.DataFrame({
+        "station_id": [1, 1],
+        "timestamp": ["2020-01-06 05:00:00+01:00", "2020-07-06 05:00:00+02:00"],
+        "temp_c": [0.0, 20.0],
+        "precip_mm": [0.0, 0.0],
+        "solar_j_cm2": [0.0, 0.0],
+        "is_rain": [False, False], "is_light_rain": [False, False],
+        "is_heavy_rain": [False, False], "is_frost": [False, False],
+        "is_hot": [False, False], "is_strong_sun": [False, False],
+    })
+    cells = build_features.aggregate_weather(weather)
+    # both hours must keep their local hour of day (5:00) and month
+    assert list(cells["hour"]) == [5, 5]
+    assert sorted(cells["month"]) == [1, 7]
+
+
 def test_aggregate_accidents_counts_and_weekend():
     accidents = pd.DataFrame({
         "station_id": [1, 1, 1],
