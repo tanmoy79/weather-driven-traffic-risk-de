@@ -13,3 +13,14 @@ __pycache__/
 
 # macOS
 .DS_Store
+
+# downloaded and intermediate data (reproducible via the workflow)
+data/raw_weather/
+data/processed/
+
+# Snakemake working directory
+.snakemake/
+
+# Python virtual environments
+venv/
+.venv/
