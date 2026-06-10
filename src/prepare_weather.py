@@ -54,12 +54,19 @@ def read_product_file(zip_path, value_column):
 
 
 def load_station(station_id, raw_dir):
-    """Combine the three parameters of one station into a single dataframe."""
+    """Combine the parameters of one station into a single dataframe.
+
+    Temperature and precipitation are required, solar radiation is optional
+    (only a few stations measure it; the column stays NaN for the others).
+    """
     combined = None
     for param, (prefix, value_column, out_name) in PARAMETERS.items():
         pattern = os.path.join(raw_dir, param, f"{prefix}{station_id:05d}_*.zip")
         matches = glob.glob(pattern)
         if not matches:
+            if param == "solar":
+                combined[out_name] = float("nan")
+                continue
             log.warning("station %d: no %s archive found, skipping station",
                         station_id, param)
             return None

@@ -33,7 +33,6 @@ CELL_KEY = ["station_id", "year", "month", "is_weekend", "hour"]
 def classify_weather_hours(weather, args):
     """Add boolean condition columns to the hourly weather table."""
     weather = weather.dropna(subset=["temp_c", "precip_mm"]).copy()
-    weather["solar_j_cm2"] = weather["solar_j_cm2"].fillna(0)
 
     weather["is_rain"] = weather["precip_mm"] >= args.rain_threshold
     weather["is_light_rain"] = (weather["precip_mm"] >= args.rain_threshold) & \
@@ -41,6 +40,8 @@ def classify_weather_hours(weather, args):
     weather["is_heavy_rain"] = weather["precip_mm"] >= args.heavy_rain_threshold
     weather["is_frost"] = weather["temp_c"] < args.frost_threshold
     weather["is_hot"] = weather["temp_c"] >= args.heat_threshold
+    # solar is NaN for stations without a radiation sensor (comparison gives False);
+    # the analysis of RQ2 only uses cells where mean_solar is available
     weather["is_strong_sun"] = weather["solar_j_cm2"] >= args.strong_sun_threshold
     return weather
 

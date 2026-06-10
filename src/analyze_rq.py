@@ -91,7 +91,9 @@ def analyze_rq1(cells, accidents):
 
 def analyze_rq2(cells, accidents):
     """Summer sun, heat and rain vs. commuter-hour accident rates."""
-    commuter = cells[cells["month"].isin(SUMMER_MONTHS) & cells["is_commuter_hour"]]
+    # only stations with a solar radiation sensor can be used here
+    commuter = cells[cells["month"].isin(SUMMER_MONTHS) & cells["is_commuter_hour"] &
+                     cells["mean_solar"].notna()]
 
     groups = {
         "neutral": (commuter["strong_sun_share"] <= 0.5) &

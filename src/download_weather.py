@@ -67,20 +67,27 @@ def parse_station_list(text):
 
 
 def select_stations(station_lists, start_year, end_year, per_state):
-    """Pick stations that cover the period in all parameters, a few per state."""
+    """Pick a few stations per state that cover the whole period.
+
+    Temperature and precipitation are required (the station network for
+    these is dense), solar radiation is only measured at a few dozen
+    stations and is therefore optional. Stations with solar are preferred
+    so that as many of them as possible end up in the selection.
+    """
     start, end = f"{start_year}0101", f"{end_year}1231"
-    covered = []
+    covered = {}
     for param, stations in station_lists.items():
         ok = stations[(stations["from_date"] <= start) & (stations["to_date"] >= end)]
-        covered.append(set(ok["station_id"]))
+        covered[param] = set(ok["station_id"])
         log.info("%s: %d stations cover %s-%s", param, len(ok), start_year, end_year)
-    common = set.intersection(*covered)
+    required = covered["air_temperature"] & covered["precipitation"]
 
-    # take metadata from the temperature list, then a few stations per state
     meta = station_lists["air_temperature"]
-    meta = meta[meta["station_id"].isin(common)].sort_values("station_id")
-    selected = meta.groupby("state").head(per_state)
-    return selected[["station_id", "name", "state", "lat", "lon"]]
+    meta = meta[meta["station_id"].isin(required)].copy()
+    meta["has_solar"] = meta["station_id"].isin(covered["solar"])
+    meta = meta.sort_values(["has_solar", "station_id"], ascending=[False, True])
+    selected = meta.groupby("state").head(per_state).sort_values("station_id")
+    return selected[["station_id", "name", "state", "lat", "lon", "has_solar"]]
 
 
 def download_station_files(stations, out_dir, timeout):
@@ -91,7 +98,10 @@ def download_station_files(stations, out_dir, timeout):
         param_dir = os.path.join(out_dir, param)
         os.makedirs(param_dir, exist_ok=True)
 
-        for station_id in stations["station_id"]:
+        for _, station in stations.iterrows():
+            station_id = station["station_id"]
+            if param == "solar" and not station["has_solar"]:
+                continue
             wanted = [z for z in zip_names if z.startswith(f"{prefix}{station_id:05d}_")]
             if not wanted:
                 log.warning("no %s file found for station %d, skipping", param, station_id)
