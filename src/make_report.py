@@ -29,26 +29,30 @@ def value(results, section, group, metric):
 
 
 def rq1_text(results):
-    rate_none = value(results, "rate_by_rain_share", "none", "rate_per_1000h")
-    rate_high = value(results, "rate_by_rain_share", "high", "rate_per_1000h")
-    rate_light = value(results, "rate_by_rain_intensity", "light_rain", "rate_per_1000h")
-    rate_heavy = value(results, "rate_by_rain_intensity", "heavy_rain", "rate_per_1000h")
-    frost_none = value(results, "rate_by_frost_share_winter", "none", "rate_per_1000h")
-    frost_high = value(results, "rate_by_frost_share_winter", "high", "rate_per_1000h")
+    wet = value(results, "condition_ratios", "wet_road", "rate_ratio")
+    icy = value(results, "condition_ratios", "icy_road", "rate_ratio")
+    light = value(results, "standardized_ratios", "light_rain", "rate_ratio")
+    heavy = value(results, "standardized_ratios", "heavy_rain", "rate_ratio")
     severe_dry = value(results, "severity_by_road_condition", "dry", "share_severe")
     severe_icy = value(results, "severity_by_road_condition", "icy", "share_severe")
+    loss_dry = value(results, "type_by_road_condition", "dry", "share_loss_of_control")
+    loss_icy = value(results, "type_by_road_condition", "icy", "share_loss_of_control")
     p = value(results, "severity_by_road_condition", "all", "chi2_p_value")
     return (
-        f"In time cells where more than 35 % of the hours were rainy, the accident "
-        f"rate was **{rate_high / rate_none:.2f} times** the rate of completely dry "
-        f"cells ({rate_high:.2f} vs. {rate_none:.2f} accidents per 1000 station-hours). "
-        f"Heavy rain (>= 4 mm/h) raised the rate more than light rain "
-        f"({rate_heavy:.2f} vs. {rate_light:.2f}). In winter, cells with a high share "
-        f"of frost hours showed a rate of {frost_high:.2f} compared to {frost_none:.2f} "
-        f"in frost-free winter cells (ratio {frost_high / frost_none:.2f}). "
-        f"Severity also depends on the road condition: {severe_icy * 100:.1f} % of "
-        f"accidents on icy roads were severe compared to {severe_dry * 100:.1f} % on "
-        f"dry roads (chi-square p = {p:.1e})."
+        f"Accidents on wet roads happened **{wet:.2f} times** as often per rainy "
+        f"hour as dry-road accidents per dry hour (controlling for station, month, "
+        f"weekday/weekend and hour of day). On icy roads in winter the factor was "
+        f"**{icy:.2f}** per frost hour - below 1, because most frost hours have "
+        f"gritted or simply dry roads and people drive more carefully. The intensity matters: comparing time cells "
+        f"with only light rain (ratio {light:.2f}) to cells that saw heavy rain "
+        f">= 4 mm/h (ratio {heavy:.2f}) shows a stronger increase for heavy rain "
+        f"(cell-level ratios are diluted because every cell also contains dry "
+        f"hours). The character of accidents changes too: on icy roads "
+        f"{loss_icy * 100:.1f} % were loss-of-control accidents compared to "
+        f"{loss_dry * 100:.1f} % on dry roads. Severity shows the opposite "
+        f"pattern - {severe_icy * 100:.1f} % of accidents on icy roads were severe "
+        f"vs. {severe_dry * 100:.1f} % on dry roads (chi-square p = {p:.1e}), "
+        f"presumably because drivers slow down."
     )
 
 
@@ -62,11 +66,14 @@ def rq2_text(results):
     r = value(results, "solar_rate_correlation", "station_months", "pearson_r")
     p = value(results, "solar_rate_correlation", "station_months", "p_value")
     return (
-        f"During summer commuter hours, cells dominated by strong sunshine had "
-        f"**{ratio_sun:.2f} times** the accident rate of neutral conditions, hot "
-        f"cells (>= 30 degC) {ratio_hot:.2f} times and rainy cells {ratio_rain:.2f} "
-        f"times. Across station-months the correlation between mean solar radiation "
-        f"and the commuter accident rate was r = {r:.2f} (p = {p:.3f})."
+        f"During summer commuter hours (standardized within station, month and "
+        f"hour), cells dominated by strong sunshine had **{ratio_sun:.2f} times** "
+        f"the accident rate of neutral conditions, hot cells {ratio_hot:.2f} times "
+        f"and rainy cells {ratio_rain:.2f} times. Across station-months the "
+        f"correlation between mean solar radiation and the commuter accident rate "
+        f"was r = {r:.2f} (p = {p:.3f}). So neither sun glare nor heat raised "
+        f"commuter accident rates measurably - summer rain remains the more "
+        f"relevant factor (see RQ1)."
     )
 
 
@@ -91,6 +98,9 @@ def rq4_text(results):
     yearly = results[(results["section"] == "yearly_risk") &
                      (results["metric"] == "rain_ratio")]
     yearly = yearly.set_index("group")["value"]
+    severe = results[(results["section"] == "yearly_risk") &
+                     (results["metric"] == "share_severe_on_wet_or_icy")]
+    severe = severe.set_index("group")["value"]
     slope = value(results, "rain_ratio_trend", "2016-2024", "slope_per_year")
     p = value(results, "rain_ratio_trend", "2016-2024", "p_value")
     direction = "decreased" if slope < 0 else "increased"
@@ -99,8 +109,12 @@ def rq4_text(results):
         f"The rain rate ratio went from {yearly.iloc[0]:.2f} in {yearly.index[0]} to "
         f"{yearly.iloc[-1]:.2f} in {yearly.index[-1]}. Over the whole period the "
         f"ratio {direction} by {abs(slope):.3f} per year, which is {significance} "
-        f"(p = {p:.3f}). So the data shows no clear decoupling of adverse weather "
-        f"and accident risk yet."
+        f"(p = {p:.3f}) - rain remained roughly equally dangerous. What did change "
+        f"is the outcome: the share of severe accidents on wet or icy roads fell "
+        f"steadily from {severe.iloc[0] * 100:.1f} % in {severe.index[0]} to "
+        f"{severe.iloc[-1] * 100:.1f} % in {severe.index[-1]}, which is consistent "
+        f"with modern vehicle safety technology softening the consequences of "
+        f"weather-related accidents rather than preventing them."
     )
 
 

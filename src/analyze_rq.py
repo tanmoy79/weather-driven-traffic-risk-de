@@ -5,6 +5,13 @@ counts) and the accident table, runs the statistics for the selected research
 question and writes a long-format CSV with the columns
 section, group, metric, value.
 
+Because rainy or frosty hours are not spread evenly over the day and the year
+(e.g. frost happens at night and in winter when there is little traffic), a
+naive comparison of rainy vs. dry cells would mostly measure traffic volume.
+The rate ratios are therefore standardized: observed accidents in the exposed
+cells are divided by the accidents expected from the rates of unexposed cells
+in the same stratum (station, month, weekend/weekday, hour of day).
+
 Research questions:
     1 - precipitation/frost vs. accident frequency, severity and type
     2 - summer sun and heat vs. commuter-hour accident rates
@@ -32,6 +39,9 @@ CITY_STATES = ["Berlin", "Hamburg", "Bremen"]
 
 ROAD_CONDITION_LABELS = {0: "dry", 1: "wet", 2: "icy"}
 
+# strata used for the standardized rate ratios
+STRATA = ["station_id", "month", "is_weekend", "hour"]
+
 
 def rate_per_1000h(cells):
     """Accidents per 1000 station-hours over a set of cells."""
@@ -41,8 +51,71 @@ def rate_per_1000h(cells):
     return cells["n_accidents"].sum() / hours * 1000
 
 
+def standardized_ratio(exposed_cells, baseline_cells):
+    """Observed/expected accident ratio of exposed vs. baseline cells.
+
+    The expected count comes from the baseline accident rate of the same
+    stratum (station, month, weekend, hour), so differences in traffic
+    volume between e.g. night and rush hours cancel out. Note that this
+    cell-level comparison dilutes the true hourly effect, because even a
+    "rainy" cell contains many dry hours.
+    """
+    baseline = baseline_cells.groupby(STRATA).agg(
+        acc=("n_accidents", "sum"), hours=("n_hours", "sum"))
+    baseline["rate"] = baseline["acc"] / baseline["hours"]
+
+    exposed = exposed_cells.groupby(STRATA).agg(
+        acc=("n_accidents", "sum"), hours=("n_hours", "sum"))
+    joined = exposed.join(baseline["rate"], how="inner").dropna()
+
+    expected = (joined["hours"] * joined["rate"]).sum()
+    if expected == 0:
+        return float("nan")
+    return joined["acc"].sum() / expected
+
+
+def add_exposure_columns(cells):
+    """Add the columns needed for the road-condition based rate ratios."""
+    cells = cells.copy()
+    cells["n_dry_road"] = (cells["n_accidents"] - cells["n_wet_road"]
+                           - cells["n_icy_road"])
+    cells["hours_no_rain"] = cells["n_hours"] - cells["hours_rain"]
+    cells["hours_no_frost"] = cells["n_hours"] - cells["hours_frost"]
+    return cells
+
+
+def condition_ratio(cells, obs_acc, obs_hours, base_acc, base_hours):
+    """Accidents on a road condition per matching weather hour, relative to
+    dry-road accidents per dry hour (standardized per stratum).
+
+    This works around the missing accident dates: the accident record
+    itself says whether the road was wet or icy, and the weather panel
+    provides the number of rainy/frost hours as exposure.
+    """
+    grouped = cells.groupby(STRATA)[[obs_acc, obs_hours, base_acc, base_hours]].sum()
+    grouped = grouped[(grouped[obs_hours] > 0) & (grouped[base_hours] > 0)]
+    expected = (grouped[obs_hours] * grouped[base_acc] / grouped[base_hours]).sum()
+    if expected == 0:
+        return float("nan")
+    return grouped[obs_acc].sum() / expected
+
+
+def weather_ratios(cells):
+    """Rain (wet road) and frost (icy road) rate ratios for a cell subset."""
+    rain_ratio = condition_ratio(cells, "n_wet_road", "hours_rain",
+                                 "n_dry_road", "hours_no_rain")
+    winter = cells[cells["month"].isin(WINTER_MONTHS)]
+    frost_ratio = condition_ratio(winter, "n_icy_road", "hours_frost",
+                                  "n_dry_road", "hours_no_frost")
+    return rain_ratio, frost_ratio
+
+
 def rates_by_share(cells, share_column, section):
-    """Accident rates for cells binned by the share of e.g. rainy hours."""
+    """Raw accident rates for cells binned by the share of e.g. rainy hours.
+
+    These rates are purely descriptive (not standardized), the standardized
+    ratios are reported separately.
+    """
     bins = {
         "none": cells[share_column] == 0,
         "low": (cells[share_column] > 0) & (cells[share_column] <= 0.15),
@@ -60,19 +133,26 @@ def rates_by_share(cells, share_column, section):
 
 def analyze_rq1(cells, accidents):
     """Precipitation and frost vs. accident frequency, severity and type."""
-    rows = rates_by_share(cells, "rain_share", "rate_by_rain_share")
-
-    # light vs. heavy rain: compare cells that saw only light rain with
-    # cells that saw at least some heavy rain
+    cells = add_exposure_columns(cells)
     dry = cells[cells["rain_share"] == 0]
-    light = cells[(cells["rain_share"] > 0) & (cells["heavy_rain_share"] == 0)]
-    heavy = cells[cells["heavy_rain_share"] > 0]
-    for label, subset in [("dry", dry), ("light_rain", light), ("heavy_rain", heavy)]:
-        rows.append(("rate_by_rain_intensity", label, "rate_per_1000h",
-                     rate_per_1000h(subset)))
-
-    # frost only compared within winter months to avoid seasonal bias
     winter = cells[cells["month"].isin(WINTER_MONTHS)]
+
+    # headline numbers: road-condition accidents per matching weather hour
+    rain_ratio, frost_ratio = weather_ratios(cells)
+    rows = [("condition_ratios", "wet_road", "rate_ratio", rain_ratio),
+            ("condition_ratios", "icy_road", "rate_ratio", frost_ratio)]
+
+    # rain intensity comparison (cell level, diluted but comparable)
+    ratios = {
+        "light_rain": standardized_ratio(
+            cells[(cells["rain_share"] > 0.35) & (cells["heavy_rain_share"] == 0)], dry),
+        "heavy_rain": standardized_ratio(cells[cells["heavy_rain_share"] > 0], dry),
+    }
+    rows += [("standardized_ratios", label, "rate_ratio", value)
+             for label, value in ratios.items()]
+
+    # descriptive (unstandardized) rates for the figure
+    rows += rates_by_share(cells, "rain_share", "rate_by_rain_share")
     rows += rates_by_share(winter, "frost_share", "rate_by_frost_share_winter")
 
     # severity and accident type by road condition (directly from the accidents)
@@ -96,23 +176,26 @@ def analyze_rq2(cells, accidents):
                      cells["mean_solar"].notna()]
 
     groups = {
-        "neutral": (commuter["strong_sun_share"] <= 0.5) &
-                   (commuter["rain_share"] <= 0.15) &
-                   (commuter["hot_share"] <= 0.5),
         "strong_sun": commuter["strong_sun_share"] > 0.5,
-        "hot": commuter["hot_share"] > 0.5,
+        "hot": commuter["hot_share"] > 0.2,
         "rainy": commuter["rain_share"] > 0.35,
     }
-    rows = []
-    baseline = rate_per_1000h(commuter[groups["neutral"]])
+    neutral = commuter[(commuter["strong_sun_share"] <= 0.5) &
+                       (commuter["rain_share"] <= 0.15) &
+                       (commuter["hot_share"] <= 0.2)]
+
+    rows = [("commuter_rate_by_condition", "neutral", "rate_per_1000h",
+             rate_per_1000h(neutral)),
+            ("commuter_rate_by_condition", "neutral", "n_hours",
+             neutral["n_hours"].sum())]
     for label, mask in groups.items():
         subset = commuter[mask]
-        rate = rate_per_1000h(subset)
-        rows.append(("commuter_rate_by_condition", label, "rate_per_1000h", rate))
+        rows.append(("commuter_rate_by_condition", label, "rate_per_1000h",
+                     rate_per_1000h(subset)))
         rows.append(("commuter_rate_by_condition", label, "n_hours",
                      subset["n_hours"].sum()))
         rows.append(("commuter_rate_by_condition", label, "rate_ratio_vs_neutral",
-                     rate / baseline))
+                     standardized_ratio(subset, neutral)))
 
     # correlation between solar radiation and the accident rate across
     # station-months (commuter hours only)
@@ -127,18 +210,9 @@ def analyze_rq2(cells, accidents):
     return rows
 
 
-def weather_ratios(cells):
-    """Rain and frost rate ratios (vs. dry/no-frost cells) for a cell subset."""
-    rain_ratio = rate_per_1000h(cells[cells["rain_share"] > 0.35]) / \
-        rate_per_1000h(cells[cells["rain_share"] == 0])
-    winter = cells[cells["month"].isin(WINTER_MONTHS)]
-    frost_ratio = rate_per_1000h(winter[winter["frost_share"] > 0.35]) / \
-        rate_per_1000h(winter[winter["frost_share"] == 0])
-    return rain_ratio, frost_ratio
-
-
 def analyze_rq3(cells, accidents):
     """Weather sensitivity index per federal state."""
+    cells = add_exposure_columns(cells)
     rows = []
     for state, state_cells in cells.groupby("state"):
         rain_ratio, frost_ratio = weather_ratios(state_cells)
@@ -155,9 +229,12 @@ def analyze_rq3(cells, accidents):
 
 def analyze_rq4(cells, accidents):
     """Yearly evolution of the weather-related accident risk."""
+    cells = add_exposure_columns(cells)
     rows = []
     yearly_ratios = []
     for year, year_cells in cells.groupby("year"):
+        # the ratio is computed within each year, so the growing coverage
+        # of the Unfallatlas over the years does not distort the trend
         rain_ratio, frost_ratio = weather_ratios(year_cells)
         year_accidents = accidents[accidents["year"] == year]
         bad_road = year_accidents[year_accidents["road_condition"] > 0]
