@@ -27,8 +27,10 @@ BASE_URL = "https://opendata.dwd.de/climate_environment/CDC/observations_germany
 
 # parameter -> (subdirectory, station description file, zip name prefix)
 PARAMETERS = {
-    "air_temperature": ("air_temperature/historical", "TU_Stundenwerte_Beschreibung_Stationen.txt", "stundenwerte_TU_"),
-    "precipitation": ("precipitation/historical", "RR_Stundenwerte_Beschreibung_Stationen.txt", "stundenwerte_RR_"),
+    "air_temperature": ("air_temperature/historical",
+                        "TU_Stundenwerte_Beschreibung_Stationen.txt", "stundenwerte_TU_"),
+    "precipitation": ("precipitation/historical",
+                      "RR_Stundenwerte_Beschreibung_Stationen.txt", "stundenwerte_RR_"),
     "solar": ("solar", "ST_Stundenwerte_Beschreibung_Stationen.txt", "stundenwerte_ST_"),
 }
 
