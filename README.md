@@ -89,13 +89,53 @@ pytest tests
 ## Repository Structure
 
 ```
-config/          workflow configuration
-data/            raw accident data (committed) and downloaded/derived data
-docs/            requirements and activity diagrams
-results/         generated tables, figures and the final report
-src/             one command-line tool per workflow step
-tests/           pytest unit tests
-workflow/        Snakefile
+weather-driven-traffic-risk-de/
+├── CITATION.cff                       # Citation metadata for this software
+├── CONDUCT.md                         # Code of conduct
+├── CONTRIBUTING.md                    # Contribution guidelines
+├── LICENSE                            # MIT license
+├── README.md
+├── requirements.txt                   # Python dependencies (pip)
+├── .flake8                            # Linter configuration
+├── .github/
+│   └── workflows/
+│       └── ci.yml                     # CI: flake8, pytest, Snakemake dry run
+├── config/
+│   └── config.yaml                    # All workflow parameters (years, thresholds, …)
+├── data/
+│   └── raw_accidents/                 # Unfallatlas accident records (committed)
+│       ├── Unfallorte_2016_LinRef.txt #   one file per year, 2016–2024;
+│       ├── ...                        #   data/raw_weather/ and data/processed/
+│       └── Unfallorte2024_LinRef.csv  #   are generated on the first run
+├── docs/                              # Requirements and activity diagrams
+│   ├── requirements.md                # Detailed requirements and research questions
+│   ├── Activity Diagram.png
+│   ├── activity_diagram_updated.drawio
+│   └── activity_diagram_updated.png
+├── results/                           # Generated output (reproducible)
+│   ├── report.md                      # Final assembled report
+│   ├── summary_statistics.csv
+│   ├── rq1_results.csv … rq4_results.csv
+│   └── figures/                       # Overview and per-RQ figures (PNG)
+├── src/                               # One command-line tool per workflow step
+│   ├── prepare_accidents.py           # Merge yearly Unfallatlas files
+│   ├── download_weather.py            # Select DWD stations, download observations
+│   ├── prepare_weather.py             # Build gap-free hourly weather series
+│   ├── join_data.py                   # Match accidents to nearest station (KD-tree)
+│   ├── build_features.py              # Aggregate into time cells with thresholds
+│   ├── descriptive_stats.py           # Summary statistics and overview figures
+│   ├── analyze_rq.py                  # Statistics per research question
+│   ├── plot_results.py                # One figure per research question
+│   └── make_report.py                 # Assemble results/report.md
+├── tests/                             # Pytest unit tests
+│   ├── conftest.py
+│   ├── test_prepare_accidents.py
+│   ├── test_prepare_weather.py
+│   ├── test_join_data.py
+│   ├── test_build_features.py
+│   └── test_analyze_rq.py
+└── workflow/
+    └── Snakefile                      # Snakemake pipeline tying it all together
 ```
 
 ## Data Sources and Licenses
