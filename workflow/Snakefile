@@ -45,7 +45,7 @@ rule prepare_weather:
     input:
         "data/raw_weather/stations.csv"
     output:
-        "data/processed/weather_hourly.csv"
+        "data/climate/weather_hourly.csv"
     shell:
         "python src/prepare_weather.py --raw-dir data/raw_weather "
         "--start-year {config[start_year]} --end-year {config[end_year]} "
@@ -57,7 +57,7 @@ rule join_data:
         accidents="data/processed/accidents_clean.csv",
         stations="data/raw_weather/stations.csv"
     output:
-        "data/processed/accidents_stations.csv"
+        "data/joined/accidents_stations.csv"
     shell:
         "python src/join_data.py --accidents {input.accidents} "
         "--stations {input.stations} --max-distance-km {config[max_distance_km]} "
@@ -66,8 +66,8 @@ rule join_data:
 
 rule build_features:
     input:
-        weather="data/processed/weather_hourly.csv",
-        accidents="data/processed/accidents_stations.csv",
+        weather="data/climate/weather_hourly.csv",
+        accidents="data/joined/accidents_stations.csv",
         stations="data/raw_weather/stations.csv"
     output:
         "data/processed/analysis_table.csv"
@@ -85,7 +85,7 @@ rule build_features:
 rule descriptive_stats:
     input:
         table="data/processed/analysis_table.csv",
-        accidents="data/processed/accidents_stations.csv"
+        accidents="data/joined/accidents_stations.csv"
     output:
         "results/summary_statistics.csv",
         "results/figures/overview_accidents.png",
@@ -98,7 +98,7 @@ rule descriptive_stats:
 rule analyze_rq:
     input:
         table="data/processed/analysis_table.csv",
-        accidents="data/processed/accidents_stations.csv"
+        accidents="data/joined/accidents_stations.csv"
     output:
         "results/rq{rq}_results.csv"
     shell:

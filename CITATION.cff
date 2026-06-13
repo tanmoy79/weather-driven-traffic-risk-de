@@ -16,7 +16,7 @@ abstract: >-
   A Snakemake workflow that combines German traffic accident records
   (Unfallatlas) with hourly DWD weather observations to analyse how
   precipitation, frost, heat and solar radiation relate to traffic
-  accident frequency and severity in Germany (2016-2024).
+  accident frequency and severity in Germany (2020-2024).
 keywords:
   - traffic accidents
   - weather
