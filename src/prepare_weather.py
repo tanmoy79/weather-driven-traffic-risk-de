@@ -8,7 +8,7 @@ complete, gap-free hourly time series for the analysis period.
 
 Usage:
     python src/prepare_weather.py --raw-dir data/raw_weather \
-        --start-year 2016 --end-year 2024 --output data/processed/weather_hourly.csv
+        --start-year 2020 --end-year 2024 --output data/climate/weather_hourly.csv
 """
 
 import argparse
@@ -45,7 +45,7 @@ def read_product_file(zip_path, value_column):
     if value_column not in df.columns:
         raise ValueError(f"column {value_column} not found in {zip_path}")
 
-    # solar timestamps look like "2016010100:00", the others like "2016010100"
+    # solar timestamps look like "2020010100:00", the others like "2020010100"
     timestamp = pd.to_datetime(df["MESS_DATUM"].astype(str).str[:10],
                                format="%Y%m%d%H")
     values = pd.to_numeric(df[value_column], errors="coerce")
@@ -92,9 +92,9 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--raw-dir", default="data/raw_weather",
                         help="directory with the downloaded DWD archives")
-    parser.add_argument("--start-year", type=int, default=2016)
+    parser.add_argument("--start-year", type=int, default=2020)
     parser.add_argument("--end-year", type=int, default=2024)
-    parser.add_argument("--output", default="data/processed/weather_hourly.csv")
+    parser.add_argument("--output", default="data/climate/weather_hourly.csv")
     args = parser.parse_args(argv)
 
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")

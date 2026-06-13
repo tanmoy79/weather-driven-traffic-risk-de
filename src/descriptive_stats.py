@@ -6,7 +6,7 @@ before the actual research question analyses.
 
 Usage:
     python src/descriptive_stats.py --table data/processed/analysis_table.csv \
-        --accidents data/processed/accidents_stations.csv --out-dir results
+        --accidents data/joined/accidents_stations.csv --out-dir results
 """
 
 import argparse
@@ -94,7 +94,7 @@ def plot_weather(cells, path):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--table", default="data/processed/analysis_table.csv")
-    parser.add_argument("--accidents", default="data/processed/accidents_stations.csv")
+    parser.add_argument("--accidents", default="data/joined/accidents_stations.csv")
     parser.add_argument("--out-dir", default="results")
     args = parser.parse_args(argv)
 

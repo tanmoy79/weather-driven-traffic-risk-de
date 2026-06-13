@@ -8,7 +8,7 @@ state at most --stations-per-state stations are selected so that the
 download stays manageable.
 
 Usage:
-    python src/download_weather.py --start-year 2016 --end-year 2024 \
+    python src/download_weather.py --start-year 2020 --end-year 2024 \
         --stations-per-state 2 --out-dir data/raw_weather
 """
 
@@ -120,7 +120,7 @@ def download_station_files(stations, out_dir, timeout):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--start-year", type=int, default=2016)
+    parser.add_argument("--start-year", type=int, default=2020)
     parser.add_argument("--end-year", type=int, default=2024)
     parser.add_argument("--stations-per-state", type=int, default=2,
                         help="maximum number of stations per federal state")

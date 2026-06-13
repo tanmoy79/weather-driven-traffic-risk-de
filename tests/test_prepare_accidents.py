@@ -13,12 +13,12 @@ HEADER_2024 = ("OID_;UIDENTSTLAE;ULAND;UREGBEZ;UKREIS;UGEMEINDE;UJAHR;UMONAT;"
 ROW_2024 = ("1;0124;01;0;59;044;2024;05;23;1;3;1;5;2;0;0;1;0;0;0;0;"
             "525162,37;6045497,20;9,389075;54,556379;1")
 
-HEADER_2016 = ("FID;OBJECTID;ULAND;UREGBEZ;UKREIS;UGEMEINDE;UJAHR;UMONAT;"
-               "USTUNDE;UWOCHENTAG;UKATEGORIE;UART;UTYP1;ULICHTVERH;IstStrasse;"
-               "IstRad;IstPKW;IstFuss;IstKrad;IstGkfz;IstSonstig;LINREFX;"
-               "LINREFY;XGCSWGS84;YGCSWGS84")
-ROW_2016 = ("0;1;01;0;53;120;2016;01;09;5;2;8;1;0;2;0;1;0;0;0;0;"
-            "606982,39;5954659,92;10,621659;53,729614")
+HEADER_2020 = ("OBJECTID;UIDENTSTLAE;ULAND;UREGBEZ;UKREIS;UGEMEINDE;UJAHR;UMONAT;"
+               "USTUNDE;UWOCHENTAG;UKATEGORIE;UART;UTYP1;ULICHTVERH;IstRad;"
+               "IstPKW;IstFuss;IstKrad;IstGkfz;IstSonstige;LINREFX;LINREFY;"
+               "XGCSWGS84;YGCSWGS84;STRZUSTAND")
+ROW_2020 = ("1;0120;01;0;53;120;2020;01;09;5;2;8;1;0;0;1;0;0;0;0;"
+            "606982,39;5954659,92;10,621659;53,729614;1")
 
 
 def write_file(path, header, rows):
@@ -34,11 +34,12 @@ def test_load_raw_file_handles_2024_format(tmp_path):
     assert df["lon"].iloc[0] == pytest.approx(9.389075)
 
 
-def test_load_raw_file_handles_2016_format(tmp_path):
-    path = tmp_path / "Unfallorte_2016_LinRef.txt"
-    write_file(path, HEADER_2016, [ROW_2016])
+def test_load_raw_file_handles_2020_format(tmp_path):
+    path = tmp_path / "Unfallorte2020_LinRef.csv"
+    write_file(path, HEADER_2020, [ROW_2020])
     df = prepare_accidents.load_raw_file(str(path))
-    assert list(df["road_condition"]) == [2]
+    assert list(df["year"]) == [2020]
+    assert list(df["road_condition"]) == [1]
     assert list(df["severity"]) == [2]
 
 

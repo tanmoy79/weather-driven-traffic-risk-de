@@ -16,11 +16,11 @@ Research questions:
     1 - precipitation/frost vs. accident frequency, severity and type
     2 - summer sun and heat vs. commuter-hour accident rates
     3 - weather sensitivity of the federal states
-    4 - evolution of weather-related risk 2016-2024
+    4 - evolution of weather-related risk over the analysis period
 
 Usage:
     python src/analyze_rq.py --rq 1 --table data/processed/analysis_table.csv \
-        --accidents data/processed/accidents_stations.csv --output results/rq1_results.csv
+        --accidents data/joined/accidents_stations.csv --output results/rq1_results.csv
 """
 
 import argparse
@@ -249,8 +249,9 @@ def analyze_rq4(cells, accidents):
     years = [y for y, _ in yearly_ratios]
     ratios = [r for _, r in yearly_ratios]
     trend = stats.linregress(years, ratios)
-    rows.append(("rain_ratio_trend", "2016-2024", "slope_per_year", trend.slope))
-    rows.append(("rain_ratio_trend", "2016-2024", "p_value", trend.pvalue))
+    period = f"{years[0]}-{years[-1]}"
+    rows.append(("rain_ratio_trend", period, "slope_per_year", trend.slope))
+    rows.append(("rain_ratio_trend", period, "p_value", trend.pvalue))
     return rows
 
 
@@ -262,7 +263,7 @@ def main(argv=None):
     parser.add_argument("--rq", type=int, required=True, choices=ANALYSES,
                         help="research question to analyse")
     parser.add_argument("--table", default="data/processed/analysis_table.csv")
-    parser.add_argument("--accidents", default="data/processed/accidents_stations.csv")
+    parser.add_argument("--accidents", default="data/joined/accidents_stations.csv")
     parser.add_argument("--output", default=None,
                         help="output CSV (default: results/rq<N>_results.csv)")
     args = parser.parse_args(argv)
