@@ -2,7 +2,7 @@
 
 This project is part of the course **"Research Software Engineering (RSE)"**, taught by Prof. Dr. Anna-Lena Lamprecht at the University of Potsdam.
 
-A reproducible Snakemake workflow that combines German traffic accident records with hourly weather observations to analyse how precipitation, frost, heat and solar radiation relate to traffic accident frequency and severity in Germany (2016–2024).
+A reproducible Snakemake workflow that combines German traffic accident records with hourly weather observations to analyse how precipitation, frost, heat and solar radiation relate to traffic accident frequency and severity in Germany (2020–2024).
 
 The accident data comes from the official [German Accident Atlas (Unfallatlas)](https://unfallatlas.statistikportal.de/), maintained by the Federal Statistical Office and the Statistical Offices of the Länder. The weather data comes from the [DWD Climate Data Center (CDC)](https://opendata.dwd.de/climate_environment/CDC/) open data server.
 
@@ -23,8 +23,8 @@ The accident data comes from the official [German Accident Atlas (Unfallatlas)](
 * **Objective:** Construct a state-level sensitivity index (rain and frost risk ratios per state) to evaluate regional differences between highly urbanized city states (Berlin, Hamburg, Bremen) and the larger territorial states.
 
 ### 4. The Evolution of Weather Risk Over Time (RQ4)
-* **Question:** How have traffic safety patterns evolved under varying weather conditions in Germany between 2016 and 2024, and has the relative risk of weather-related accidents declined over that period?
-* **Objective:** Track the yearly weather risk ratios and severity shares from 2016 to 2024 to see whether adverse weather has become less dangerous over time (for example through modern vehicle safety technology such as ESP and autonomous braking).
+* **Question:** How have traffic safety patterns evolved under varying weather conditions in Germany between 2020 and 2024, and has the relative risk of weather-related accidents declined over that period?
+* **Objective:** Track the yearly weather risk ratios and severity shares from 2020 to 2024 to see whether adverse weather has become less dangerous over time (for example through modern vehicle safety technology such as ESP and autonomous braking).
 
 ## Key Results
 
@@ -62,13 +62,13 @@ pip install -r requirements.txt
 
 ## Running the Workflow
 
-The raw accident data (2016–2024) is included in `data/raw_accidents/`. The weather data (~200 MB) is downloaded automatically from the DWD open data server on the first run, so an internet connection is needed once.
+The raw accident data (2020–2024) is included in `data/raw_accidents/`. The weather data (~200 MB) is downloaded automatically from the DWD open data server on the first run, so an internet connection is needed once.
 
 ```bash
 snakemake --cores 4 -s workflow/Snakefile
 ```
 
-The whole run takes roughly 15–20 minutes on a normal laptop. All intermediate files go to `data/processed/`, all results (tables, figures, report) to `results/`.
+The whole run takes roughly 15–20 minutes on a normal laptop. The prepared hourly climate data is saved separately to `data/climate/`, the joined accident–station data to `data/joined/`, remaining intermediate files to `data/processed/`, and all results (tables, figures, report) to `results/`.
 
 ### Configuration
 
@@ -104,9 +104,10 @@ weather-driven-traffic-risk-de/
 │   └── config.yaml                    # All workflow parameters (years, thresholds, …)
 ├── data/
 │   └── raw_accidents/                 # Unfallatlas accident records (committed)
-│       ├── Unfallorte_2016_LinRef.txt #   one file per year, 2016–2024;
-│       ├── ...                        #   data/raw_weather/ and data/processed/
-│       └── Unfallorte2024_LinRef.csv  #   are generated on the first run
+│       ├── Unfallorte2020_LinRef.csv  #   one file per year, 2020–2024;
+│       ├── ...                        #   data/raw_weather/, data/climate/,
+│       └── Unfallorte2024_LinRef.csv  #   data/joined/ and data/processed/
+│                                      #   are generated on the first run
 ├── docs/                              # Requirements and activity diagrams
 │   ├── requirements.md                # Detailed requirements and research questions
 │   ├── Activity Diagram.png

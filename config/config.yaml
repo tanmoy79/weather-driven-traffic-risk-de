@@ -1,7 +1,7 @@
 # Configuration of the weather-driven traffic risk workflow.
 
-# analysis period (the raw accident files cover 2016-2024)
-start_year: 2016
+# analysis period (the raw accident files cover 2020-2024)
+start_year: 2020
 end_year: 2024
 
 # how many DWD weather stations to use per federal state
