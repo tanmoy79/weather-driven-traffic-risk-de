@@ -123,7 +123,8 @@ def plot_rq4(results):
     p = get_values(results, "rain_ratio_trend", "p_value").iloc[0]
     axes[0].annotate(f"rain trend: {slope:+.3f}/year (p = {p:.3f})",
                      xy=(0.02, 0.02), xycoords="axes fraction", fontsize=9)
-    fig.suptitle("RQ4: Evolution of weather-related accident risk 2016-2024")
+    fig.suptitle(f"RQ4: Evolution of weather-related accident risk "
+                 f"{yearly.index.min()}-{yearly.index.max()}")
     fig.tight_layout()
     return fig
 

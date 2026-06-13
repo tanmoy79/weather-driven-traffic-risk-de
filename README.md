@@ -33,7 +33,7 @@ The full generated report with figures is in [results/report.md](results/report.
 * **RQ1:** Accidents on wet roads happened **2.8×** as often per rainy hour as dry-road accidents per dry hour. On icy roads, **65 %** of accidents were loss-of-control accidents (vs. 16 % on dry roads), but the share of *severe* accidents was lower than on dry roads — drivers apparently slow down.
 * **RQ2:** Neither strong sunshine (rate ratio 1.00) nor heat (1.01) raised summer commuter-hour accident rates measurably; summer rain remains the more relevant factor.
 * **RQ3:** The northern coastal states (Schleswig-Holstein, Mecklenburg-Vorpommern) showed the highest weather sensitivity, Bayern the lowest; city states and territorial states differ only slightly.
-* **RQ4:** Rain remained roughly equally dangerous across 2016–2024 (no significant trend), but the share of severe accidents on wet/icy roads fell steadily from 19 % to 15 % — consistent with modern vehicle safety technology softening the consequences.
+* **RQ4:** Rain remained roughly equally dangerous across 2020–2024 (no significant trend), but the share of severe accidents on wet/icy roads kept falling — consistent with modern vehicle safety technology softening the consequences. See [results/report.md](results/report.md) for the regenerated numbers.
 
 ---
 

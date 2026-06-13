@@ -102,8 +102,9 @@ def rq4_text(results):
     severe = results[(results["section"] == "yearly_risk") &
                      (results["metric"] == "share_severe_on_wet_or_icy")]
     severe = severe.set_index("group")["value"]
-    slope = value(results, "rain_ratio_trend", "2016-2024", "slope_per_year")
-    p = value(results, "rain_ratio_trend", "2016-2024", "p_value")
+    trend = results[results["section"] == "rain_ratio_trend"].set_index("metric")["value"]
+    slope = float(trend["slope_per_year"])
+    p = float(trend["p_value"])
     direction = "decreased" if slope < 0 else "increased"
     significance = "statistically significant" if p < 0.05 else "not statistically significant"
     return (
@@ -123,7 +124,7 @@ RQ_TITLES = {
     1: "RQ1: How do precipitation and frost impact accident frequency, severity and type?",
     2: "RQ2: Do summer sun and heat predict commuter-hour accident rates?",
     3: "RQ3: Which federal states are most weather-sensitive?",
-    4: "RQ4: How did weather-related risk evolve from 2016 to 2024?",
+    4: "RQ4: How did weather-related risk evolve over the analysis period?",
 }
 
 RQ_TEXTS = {1: rq1_text, 2: rq2_text, 3: rq3_text, 4: rq4_text}
@@ -146,6 +147,9 @@ def main(argv=None):
     n_stations = int(value(summary, "overview", "all", "n_stations"))
     median_km = value(summary, "overview", "all", "median_station_distance_km")
 
+    years = summary.loc[summary["section"] == "accidents_per_year", "group"].astype(int)
+    period = f"{years.min()}-{years.max()}"
+
     lines = [
         "# Weather-Driven Traffic Accident Risk in Germany - Results",
         "",
@@ -153,7 +157,7 @@ def main(argv=None):
         "",
         "## Data overview",
         "",
-        f"- Accidents analysed (2016-2024, joined to a weather station): **{n_accidents:,}**",
+        f"- Accidents analysed ({period}, joined to a weather station): **{n_accidents:,}**",
         f"- DWD weather stations used: **{n_stations}** "
         f"(median distance accident -> station: {median_km:.1f} km)",
         "",

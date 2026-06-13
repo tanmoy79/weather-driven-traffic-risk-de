@@ -7,7 +7,7 @@ columns we need for the analysis and writes one clean CSV file.
 
 Usage:
     python src/prepare_accidents.py --raw-dir data/raw_accidents \
-        --start-year 2016 --end-year 2024 --output data/processed/accidents_clean.csv
+        --start-year 2020 --end-year 2024 --output data/processed/accidents_clean.csv
 """
 
 import argparse
@@ -20,8 +20,8 @@ import pandas as pd
 
 log = logging.getLogger("prepare_accidents")
 
-# The road condition column was renamed several times (2016 / 2017-2020 / 2021+).
-ROAD_CONDITION_NAMES = ["IstStrassenzustand", "STRZUSTAND", "IstStrasse"]
+# The road condition column was renamed (2020 / 2021+).
+ROAD_CONDITION_NAMES = ["IstStrassenzustand", "STRZUSTAND"]
 
 # Mapping from the raw Unfallatlas names to the names used in this project.
 RENAME_MAP = {
@@ -96,7 +96,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--raw-dir", default="data/raw_accidents",
                         help="directory with the raw Unfallatlas files")
-    parser.add_argument("--start-year", type=int, default=2016)
+    parser.add_argument("--start-year", type=int, default=2020)
     parser.add_argument("--end-year", type=int, default=2024)
     parser.add_argument("--output", default="data/processed/accidents_clean.csv")
     args = parser.parse_args(argv)

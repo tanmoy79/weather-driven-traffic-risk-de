@@ -8,7 +8,7 @@ be representative for the accident location.
 Usage:
     python src/join_data.py --accidents data/processed/accidents_clean.csv \
         --stations data/raw_weather/stations.csv \
-        --output data/processed/accidents_stations.csv
+        --output data/joined/accidents_stations.csv
 """
 
 import argparse
@@ -48,7 +48,7 @@ def main(argv=None):
     parser.add_argument("--stations", default="data/raw_weather/stations.csv")
     parser.add_argument("--max-distance-km", type=float, default=100.0,
                         help="drop accidents farther than this from any station")
-    parser.add_argument("--output", default="data/processed/accidents_stations.csv")
+    parser.add_argument("--output", default="data/joined/accidents_stations.csv")
     args = parser.parse_args(argv)
 
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
