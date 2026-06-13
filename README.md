@@ -30,10 +30,10 @@ The accident data comes from the official [German Accident Atlas (Unfallatlas)](
 
 The full generated report with figures is in [results/report.md](results/report.md).
 
-* **RQ1:** Accidents on wet roads happened **2.8×** as often per rainy hour as dry-road accidents per dry hour. On icy roads, **65 %** of accidents were loss-of-control accidents (vs. 16 % on dry roads), but the share of *severe* accidents was lower than on dry roads — drivers apparently slow down.
-* **RQ2:** Neither strong sunshine (rate ratio 1.00) nor heat (1.01) raised summer commuter-hour accident rates measurably; summer rain remains the more relevant factor.
-* **RQ3:** The northern coastal states (Schleswig-Holstein, Mecklenburg-Vorpommern) showed the highest weather sensitivity, Bayern the lowest; city states and territorial states differ only slightly.
-* **RQ4:** Rain remained roughly equally dangerous across 2020–2024 (no significant trend), but the share of severe accidents on wet/icy roads kept falling — consistent with modern vehicle safety technology softening the consequences. See [results/report.md](results/report.md) for the regenerated numbers.
+* **RQ1:** Accidents on wet roads happened **2.65×** as often per rainy hour as dry-road accidents per dry hour. On icy roads, **64 %** of accidents were loss-of-control accidents (vs. 17 % on dry roads), and the share of *severe* accidents was lower on icy roads (16.8 % vs. 18.7 % on dry roads) — drivers apparently slow down.
+* **RQ2:** Neither strong sunshine (rate ratio 1.03) nor heat (1.02) raised summer commuter-hour accident rates measurably; summer rain remains the more relevant factor.
+* **RQ3:** Mecklenburg-Vorpommern (sensitivity index 2.93) and Schleswig-Holstein (2.87) were the most weather-sensitive states, Bayern (1.21) the least; the three city states (Berlin, Hamburg, Bremen) averaged 2.16 vs. 1.96 for territorial states.
+* **RQ4:** Rain remained roughly equally dangerous across 2020–2024 (no significant trend, p = 0.42), but the share of severe accidents on wet/icy roads fell steadily from 18.5 % in 2020 to 15.0 % in 2024 — consistent with modern vehicle safety technology softening the consequences.
 
 ---
 
